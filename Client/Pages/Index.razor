@@ -1,9 +1,118 @@
 ﻿@page "/"
 
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<AuthorizeView>
+    <Authorized>
+        <h2>Hello, @context.User?.Identity?.Name! <a href="/.auth/logout">Log out</a></h2>
+        
+    </Authorized>
+    <NotAuthorized>
+        <h3>Please <a href="/.auth/login/github">login</a> to enable the buttons</h3>
+    </NotAuthorized>
+</AuthorizeView>
 
-Welcome to your new app.
+<div style="display: flex;">
+    <div style="flex: 1; padding: 10px;">
+        <button @onclick="CallPublicFunction">Call Public Function</button>
+        <span style="font-weight: bold; color: green;">@_publicApiResponse</span>
+        <p>Anonymous access</p>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+        <button @onclick="CallProtectedFunction" disabled="@(!_isUserAuthenticated)">Call Protected Function</button>
+        <span style="font-weight: bold; color: green;">@_protectedApiResponse</span>
+        <p>User needs to be authenticated</p>
+
+        <button @onclick="CallProtectedAdminFunction" disabled="@(!_isUserAdmin)">Call Protected Admin Function</button>
+        <span style="font-weight: bold; color: green;">@_protectedAdminApiResponse</span>
+        <p>User needs to be authenticated and have 'Admin' role</p>
+
+        <button @onclick="CallProtectedSuperAdminFunction">Unprotected Call to Super Admin Function</button>
+        <span style="font-weight: bold; color: @_superAdminFunctionMessageColor ;">@_protectedSuperAdminApiResponse</span>
+        <p>User needs to be authenticated and have 'Super Admin' role</p>
+    </div>
+    @if(_isUserAuthenticated){
+        <div style="flex: 1; padding: 10px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Auth provider</td>
+                        <td>@User!.Identity!.AuthenticationType</td>
+                    </tr>
+                    <tr>
+                        <td>Name</td>
+                        <td>@User!.Identity!.Name</td>
+                    </tr>
+                    @foreach(Claim claim in User!.Claims){
+                        var claimName = claim.Type.Split('/').Last();
+                        <tr>
+                            <td>@claimName</td>
+                            <td>@claim.Value</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+
+
+@code {
+
+    private ClaimsPrincipal? User;
+
+    private bool _isUserAuthenticated = false;
+
+    private bool _isUserAdmin = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider
+                .GetAuthenticationStateAsync();
+        User = authState?.User;
+        _isUserAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+        _isUserAdmin = User?.IsInRole("admin") ?? false;
+    }
+
+    private string? _publicApiResponse;
+    private string? _protectedApiResponse;
+    private string? _protectedAdminApiResponse;
+    private string? _protectedSuperAdminApiResponse;
+
+    private async Task CallPublicFunction()
+    {
+        _publicApiResponse = await Http.GetStringAsync("/api/hello");
+    }
+
+    private async Task CallProtectedFunction()
+    {
+        _protectedApiResponse = await Http.GetStringAsync("/api/hello/protected");
+    }
+
+    private async Task CallProtectedAdminFunction()
+    {
+        _protectedAdminApiResponse = await Http.GetStringAsync("/api/hello/protected/admin");
+    }
+
+    private string _superAdminFunctionMessageColor = "green";
+
+    private async Task CallProtectedSuperAdminFunction()
+    {
+        var response = await Http.GetAsync("/api/hello/protected/superadmin");
+        _protectedSuperAdminApiResponse = await response.Content.ReadAsStringAsync();
+
+        _superAdminFunctionMessageColor = response.IsSuccessStatusCode ? "green" : "red";
+    }
+}
