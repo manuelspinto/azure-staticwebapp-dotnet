@@ -1,4 +1,4 @@
-# .NET Azure Static Web App Application with Shared Authentication
+# .NET Azure Static Web App Application with Blazor and C# functions using Shared Authentication logic
 
 This application demonstrates the use .NET authentication shared between the frontend (Blazor) and the backend functions (C#). This is the base repository for the [Medium article]() explaining the different aspects and challenges of using .NET authentication in Azure Static WebApps.
 
