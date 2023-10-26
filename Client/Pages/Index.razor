@@ -29,10 +29,10 @@
         <p>User needs to be authenticated</p>
 
         <button @onclick="CallProtectedAdminFunction" disabled="@(!_isUserAdmin)">Call Protected Admin Function</button>
-        <span style="font-weight: bold; color: green;">@_protectedAdminApiResponse</span>
+        <span style="font-weight: bold; color: @_adminFunctionMessageColor;">@_protectedAdminApiResponse</span>
         <p>User needs to be authenticated and have 'Admin' role</p>
 
-        <button @onclick="CallProtectedSuperAdminFunction">Unprotected Call to Super Admin Function</button>
+        <button @onclick="CallProtectedSuperAdminFunction" disabled="@(!_isUserAuthenticated)">Unprotected Call to Super Admin Function</button>
         <span style="font-weight: bold; color: @_superAdminFunctionMessageColor ;">@_protectedSuperAdminApiResponse</span>
         <p>User needs to be authenticated and have 'Super Admin' role</p>
     </div>
@@ -91,6 +91,9 @@
     private string? _protectedAdminApiResponse;
     private string? _protectedSuperAdminApiResponse;
 
+    private string _superAdminFunctionMessageColor = "green";
+    private string _adminFunctionMessageColor = "green";
+
     private async Task CallPublicFunction()
     {
         _publicApiResponse = await Http.GetStringAsync("/api/hello");
@@ -103,10 +106,11 @@
 
     private async Task CallProtectedAdminFunction()
     {
-        _protectedAdminApiResponse = await Http.GetStringAsync("/api/hello/protected/admin");
+        var response = await Http.GetAsync("/api/hello/protected/admin");
+        _protectedAdminApiResponse = await response.Content.ReadAsStringAsync();
+        _adminFunctionMessageColor = response.IsSuccessStatusCode ? "green" : "red";
     }
 
-    private string _superAdminFunctionMessageColor = "green";
 
     private async Task CallProtectedSuperAdminFunction()
     {

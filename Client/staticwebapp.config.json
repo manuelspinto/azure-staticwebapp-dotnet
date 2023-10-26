@@ -1,5 +1,19 @@
 {
-    "navigationFallback": {
-        "rewrite": "/index.html"
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  },
+  "routes": [
+    {
+      "route": "/api/hello/protected",
+      "allowedRoles": [ "authenticated" ]
+    },
+    {
+      "route": "/api/hello/protected/admin",
+      "allowedRoles": [ "admin" ]
+    },
+    {
+      "route": "/api/hello/protected/superadmin",
+      "allowedRoles": [ "authenticated" ]
     }
+  ]
 }

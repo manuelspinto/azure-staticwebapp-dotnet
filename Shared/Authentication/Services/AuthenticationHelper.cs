@@ -1,21 +1,15 @@
-﻿using BlazorApp.Client.Authentication.Models;
-using BlazorApp.Shared.Authentication.Models;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using BlazorApp.Shared.Authentication.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BlazorApp.Shared.Authentication.Services
 {
     public static class AuthenticationHelper
     {
-        public static ClaimsPrincipal GetClaimsPrincipalFromClientPrincipal(ClientPrincipal clientPrincipal)
+        public static ClaimsPrincipal GetClaimsPrincipalFromClientPrincipal(ClientPrincipal? clientPrincipal)
         {
-            if (clientPrincipal is null)
+            if (clientPrincipal is null || clientPrincipal.UserRoles is null || clientPrincipal.UserId is null || clientPrincipal.UserDetails is null)
             {
                 return new ClaimsPrincipal();
             }
